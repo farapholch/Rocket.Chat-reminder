@@ -33,5 +33,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: rocket-chat-reminder-app
-        path: '*.zip'
+        path: 'dist/*.zip'
         retention-days: 30
