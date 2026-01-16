@@ -2,7 +2,7 @@ name: Build Rocket.Chat App
 
 on:
   push:
-    branches: [ main, linksImprovements ]
+    branches: [ main, linksImprovements, combined-improvements ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
