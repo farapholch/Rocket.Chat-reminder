@@ -388,7 +388,7 @@ export function truncate(str: string, length: number): string {
  * Generate message link that opens internally in Rocket.Chat
  */
 export async function generateMsgLink(app: appClass, message: IMessage): Promise<string> {
-    const baseUrl = app.siteUrl; // https://snacka-utv.app.trafikverket.se
+    const baseUrl = app.siteUrl;
     
     if (message.room.type === RoomType.CHANNEL) {
         return `${baseUrl}/channel/${message.room.slugifiedName}?msg=${message.id}`;
