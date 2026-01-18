@@ -48,10 +48,10 @@ jobs:
           # Get current version from app.json
           CURRENT_VERSION=$(grep -o '"version": "[^"]*"' app.json | cut -d'"' -f4)
           echo "Current version: $CURRENT_VERSION"
-          
+
           # Split version into parts
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-          
+
           # Calculate next version based on bump type
           if [[ "${{ inputs.version_bump }}" == "custom" ]]; then
             NEW_VERSION="${{ inputs.custom_version }}"
@@ -68,22 +68,22 @@ jobs:
             PATCH=$((PATCH + 1))
             NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
           fi
-          
+
           echo "New version: $NEW_VERSION"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-      
+
       - name: Generate automatic release notes
         id: release_notes
         run: |
           PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
+
           if [[ -z "$PREV_TAG" ]]; then
             COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
           else
             COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
           fi
-          
+
           # Create release notes
           NOTES="${{ inputs.release_notes }}"
           if [[ -z "$NOTES" ]]; then
@@ -91,7 +91,7 @@ jobs:
 
 $COMMITS"
           fi
-          
+
           # Save to file to handle multiline
           echo "$NOTES" > release_notes.txt
           echo "Generated release notes"
