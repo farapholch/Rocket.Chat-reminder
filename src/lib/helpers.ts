@@ -385,18 +385,18 @@ export function truncate(str: string, length: number): string {
 }
 
 /**
- * Generate message link
+ * Generate message link that opens internally in Rocket.Chat
  */
 export async function generateMsgLink(app: appClass, message: IMessage): Promise<string> {
     if (message.room.type === RoomType.CHANNEL) {
-        return `${app.siteUrl}/channel/${message.room.slugifiedName}?msg=${message.id}`;
+        return `/channel/${message.room.slugifiedName}?msg=${message.id}`;
     }
 
     if (message.room.type === RoomType.PRIVATE_GROUP) {
-        return `${app.siteUrl}/group/${message.room.slugifiedName}?msg=${message.id}`;
+        return `/group/${message.room.slugifiedName}?msg=${message.id}`;
     }
 
-    return `${app.siteUrl}/direct/${message.room.id}?msg=${message.id}`;
+    return `/direct/${message.room.id}?msg=${message.id}`;
 }
 
 /**

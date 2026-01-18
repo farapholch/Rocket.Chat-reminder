@@ -1,0 +1,85 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.8)'
+        required: true
+        type: string
+      release_type:
+        description: 'Type of release'
+        required: true
+        type: choice
+        options:
+          - release
+          - prerelease
+        default: release
+      release_notes:
+        description: 'Release notes (optional)'
+        required: false
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Rocket.Chat Apps CLI
+        run: npm install -g @rocket.chat/apps-cli
+
+      - name: Build app package
+        run: rc-apps package
+
+      - name: Get package filename
+        id: package
+        run: |
+          PACKAGE_FILE=$(ls dist/*.zip | head -n 1)
+          PACKAGE_NAME=$(basename "$PACKAGE_FILE")
+          echo "file=$PACKAGE_FILE" >> $GITHUB_OUTPUT
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Release v${{ inputs.version }}
+          body: ${{ inputs.release_notes || format('Release version {0}', inputs.version) }}
+          draft: false
+          prerelease: ${{ inputs.release_type == 'prerelease' }}
+          files: ${{ steps.package.outputs.file }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate summary
+        run: |
+          echo "# Release Summary 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** v${{ inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release Type:** ${{ inputs.release_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** \`${{ steps.package.outputs.name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ GitHub Release created with app package attached" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Git tag v${{ inputs.version }} created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 Don't forget to update the version in app.json manually if needed!" >> $GITHUB_STEP_SUMMARY
