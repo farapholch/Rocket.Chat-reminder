@@ -87,16 +87,16 @@ jobs:
           # Create release notes
           NOTES="${{ inputs.release_notes }}"
           if [[ -z "$NOTES" ]]; then
-            NOTES="## Changes since ${{ steps.version.outputs.current }}
-
-$COMMITS"
+            cat > release_notes.txt << EOF
+          ## Changes since ${{ steps.version.outputs.current }}
+          
+          $COMMITS
+          EOF
+          else
+            echo "$NOTES" > release_notes.txt
           fi
-
-          # Save to file to handle multiline
-          echo "$NOTES" > release_notes.txt
-          echo "Generated release notes"
-
-      - name: Setup Node.js
+          
+          echo "Generated release notes"      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
