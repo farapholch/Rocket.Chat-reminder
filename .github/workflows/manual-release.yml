@@ -112,10 +112,9 @@ jobs:
           
           echo "Generated release notes"
       
-      - name: Checkout updated code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Pull latest changes with updated version
+        run: |
+          git pull origin ${{ github.ref_name }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
