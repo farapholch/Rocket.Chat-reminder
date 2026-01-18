@@ -72,6 +72,15 @@ jobs:
           echo "New version: $NEW_VERSION"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Update app.json with new version
+        run: |
+          sed -i 's/"version": "[^"]*"/"version": "${{ steps.version.outputs.version }}"/' app.json
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add app.json
+          git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
+          git push
 
       - name: Generate automatic release notes
         id: release_notes
@@ -97,6 +106,11 @@ jobs:
           fi
           
           echo "Generated release notes"
+      
+      - name: Checkout updated code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -152,5 +166,4 @@ jobs:
           echo "✅ GitHub Release created with app package attached" >> $GITHUB_STEP_SUMMARY
           echo "✅ Git tag v${{ steps.version.outputs.version }} created" >> $GITHUB_STEP_SUMMARY
           echo "✅ Automatic release notes generated from commits" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "💡 Don't forget to update the version in app.json to ${{ steps.version.outputs.version }} manually!" >> $GITHUB_STEP_SUMMARY
+          echo "✅ app.json updated to version ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
