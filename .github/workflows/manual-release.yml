@@ -97,8 +97,8 @@ jobs:
           CUSTOM_NOTES="${{ inputs.release_notes }}"
           if [[ -z "$CUSTOM_NOTES" ]]; then
             RELEASE_BODY="## Changes since ${{ steps.version.outputs.current }}
-
-$COMMITS"
+          
+          $COMMITS"
           else
             RELEASE_BODY="$CUSTOM_NOTES"
           fi
