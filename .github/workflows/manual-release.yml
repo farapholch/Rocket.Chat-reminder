@@ -96,7 +96,9 @@ jobs:
             echo "$NOTES" > release_notes.txt
           fi
           
-          echo "Generated release notes"      - name: Setup Node.js
+          echo "Generated release notes"
+      
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
