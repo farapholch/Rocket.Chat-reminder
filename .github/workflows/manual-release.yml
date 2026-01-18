@@ -94,23 +94,28 @@ jobs:
           fi
 
           # Create release notes
-          NOTES="${{ inputs.release_notes }}"
-          if [[ -z "$NOTES" ]]; then
-            cat > release_notes.txt << EOF
-          ## Changes since ${{ steps.version.outputs.current }}
-          
-          $COMMITS
-          EOF
+          CUSTOM_NOTES="${{ inputs.release_notes }}"
+          if [[ -z "$CUSTOM_NOTES" ]]; then
+            RELEASE_BODY="## Changes since ${{ steps.version.outputs.current }}
+
+$COMMITS"
           else
-            echo "$NOTES" > release_notes.txt
+            RELEASE_BODY="$CUSTOM_NOTES"
           fi
+          
+          # Save to GitHub output using heredoc
+          {
+            echo 'notes<<EOF'
+            echo "$RELEASE_BODY"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
           
           echo "Generated release notes"
       
       - name: Checkout updated code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -146,7 +151,7 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
-          body_path: release_notes.txt
+          body: ${{ steps.release_notes.outputs.notes }}
           draft: false
           prerelease: ${{ inputs.release_type == 'prerelease' }}
           files: ${{ steps.package.outputs.file }}
