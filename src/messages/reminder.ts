@@ -24,44 +24,37 @@ export async function ReminderMessage({ app, owner, jobData, read, modify, room,
 
     if (jobData.targetType === JobTargetType.USER) {
         caption = lang.reminder.message.caption_user(owner.username);
-    }
-
-    if (jobData.targetType === JobTargetType.CHANNEL) {
+    }    if (jobData.targetType === JobTargetType.CHANNEL) {
         caption = lang.reminder.message.caption_channel(owner.username);
     }
 
     let refMsgAttachment: IMessageAttachment | null = null;
     if (refMsg) {
-        try {
-            const msgLink = await generateMsgLink(app, refMsg);
-            const roomName = await getRoomName(read, refMsg.room);
-            const msgDate = refMsg.createdAt ? new Date(refMsg.createdAt).getTime() : '';
-            // hh:mm - dd/mm/yyyy
-            const msgDateFormat = msgDate ? `${convertTimestampToTime(msgDate)} - ${convertTimestampToDate(msgDate)}` : '';
-            const msgAvatar = refMsg.avatarUrl
-                ? `${app.siteUrl}${refMsg.avatarUrl}`
-                : `${app.siteUrl}/avatar/${refMsg.sender.username}`;
+        const msgLink = await generateMsgLink(app, refMsg);
+        const roomName = await getRoomName(read, refMsg.room);
+        const msgDate = refMsg.createdAt ? new Date(refMsg.createdAt).getTime() : '';
+        // hh:mm - dd/mm/yyyy
+        const msgDateFormat = msgDate ? `${convertTimestampToTime(msgDate)} - ${convertTimestampToDate(msgDate)}` : '';
+        const msgAvatar = refMsg.avatarUrl
+            ? `${app.siteUrl}${refMsg.avatarUrl}`
+            : `${app.siteUrl}/avatar/${refMsg.sender.username}`;
 
-            const msgTextFormat = formatMsgInAttachment(refMsg.text || '');
+        const msgTextFormat = formatMsgInAttachment(refMsg.text || '');
 
-            caption += lang.reminder.message.caption_ref_msg(truncate(roomName, 40));
-            refMsgAttachment = {
-                color: AppConfig.attachmentColor,
-                text: msgTextFormat,
-                title: {
-                    link: msgLink,
-                    value: lang.reminder.message.title_ref_msg(msgDateFormat, roomName),
-                },
-                author: {
-                    name: refMsg.sender.username,
-                    icon: msgAvatar,
-                    // link: `${app.siteUrl}/direct/${refMsg.sender.username}`,
-                },
-            };
-        } catch (error) {
-            // Log error but continue without attachment if link generation fails
-            console.error('Failed to generate message link:', error);
-        }
+        caption += lang.reminder.message.caption_ref_msg(truncate(roomName, 40));
+        refMsgAttachment = {
+            color: AppConfig.attachmentColor,
+            text: msgTextFormat,
+            title: {
+                link: msgLink,
+                value: lang.reminder.message.title_ref_msg(msgDateFormat, roomName),
+            },
+            author: {
+                name: refMsg.sender.username,
+                icon: msgAvatar,
+                // link: `${app.siteUrl}/direct/${refMsg.sender.username}`,
+            },
+        };
     }
 
     caption += ':';
