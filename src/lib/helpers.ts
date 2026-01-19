@@ -385,46 +385,20 @@ export function truncate(str: string, length: number): string {
 }
 
 /**
- * Generate message link that opens internally in Rocket.Chat
+ * Generate message link
  */
 export async function generateMsgLink(app: appClass, message: IMessage): Promise<string> {
-    const baseUrl = app.siteUrl || ''; // https://snacka-utv.app.trafikverket.se
-    
-    // Validate baseUrl - return fallback if missing
-    if (!baseUrl || baseUrl.trim() === '') {
-        return '#';
-    }
-    
-    // Validate message ID - return fallback if missing
-    if (!message.id) {
-        return '#';
-    }
-    
-    // Remove trailing slash from baseUrl if present
-    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+    const baseUrl = (app.siteUrl || '').trim();
     
     if (message.room.type === RoomType.CHANNEL) {
-        const slugifiedName = message.room.slugifiedName || message.room.id;
-        if (!slugifiedName) {
-            return '#';
-        }
-        // Ensure proper URL encoding
-        return `${cleanBaseUrl}/channel/${encodeURIComponent(slugifiedName)}?msg=${encodeURIComponent(message.id)}`;
+        return `${baseUrl}/channel/${message.room.slugifiedName}?msg=${message.id}`;
     }
 
     if (message.room.type === RoomType.PRIVATE_GROUP) {
-        const slugifiedName = message.room.slugifiedName || message.room.id;
-        if (!slugifiedName) {
-            return '#';
-        }
-        return `${cleanBaseUrl}/group/${encodeURIComponent(slugifiedName)}?msg=${encodeURIComponent(message.id)}`;
+        return `${baseUrl}/group/${message.room.slugifiedName}?msg=${message.id}`;
     }
 
-    // For direct messages, use room ID
-    if (!message.room.id) {
-        return '#';
-    }
-    return `${cleanBaseUrl}/direct/${encodeURIComponent(message.room.id)}?msg=${encodeURIComponent(message.id)}`;
+    return `${baseUrl}/direct/${message.room.id}?msg=${message.id}`;
 }
 
 /**
