@@ -24,7 +24,9 @@ export async function ReminderMessage({ app, owner, jobData, read, modify, room,
 
     if (jobData.targetType === JobTargetType.USER) {
         caption = lang.reminder.message.caption_user(owner.username);
-    }    if (jobData.targetType === JobTargetType.CHANNEL) {
+    }
+
+    if (jobData.targetType === JobTargetType.CHANNEL) {
         caption = lang.reminder.message.caption_channel(owner.username);
     }
 

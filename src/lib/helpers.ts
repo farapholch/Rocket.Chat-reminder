@@ -388,17 +388,15 @@ export function truncate(str: string, length: number): string {
  * Generate message link
  */
 export async function generateMsgLink(app: appClass, message: IMessage): Promise<string> {
-    const baseUrl = (app.siteUrl || '').trim();
-    
     if (message.room.type === RoomType.CHANNEL) {
-        return `${baseUrl}/channel/${message.room.slugifiedName}?msg=${message.id}`;
+        return `${app.siteUrl}/channel/${message.room.slugifiedName}?msg=${message.id}`;
     }
 
     if (message.room.type === RoomType.PRIVATE_GROUP) {
-        return `${baseUrl}/group/${message.room.slugifiedName}?msg=${message.id}`;
+        return `${app.siteUrl}/group/${message.room.slugifiedName}?msg=${message.id}`;
     }
 
-    return `${baseUrl}/direct/${message.room.id}?msg=${message.id}`;
+    return `${app.siteUrl}/direct/${message.room.id}?msg=${message.id}`;
 }
 
 /**
