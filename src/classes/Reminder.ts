@@ -194,8 +194,7 @@ export class Reminder {
         read: IRead,
         modify: IModify,
         persis: IPersistence,
-    }) {
-        // Get job data
+    }) {        // Get job data
         const jobs = await getReminders({ read, id: job.id });
         const jobData = jobs && jobs[0];
 
@@ -203,6 +202,17 @@ export class Reminder {
         if (!jobData || jobData.status !== JobStatus.ACTIVE) {
             return;
         }
+
+        // CRITICAL: Immediately mark as processing to prevent duplicate execution
+        // This prevents race conditions where the same job runs multiple times
+        await setReminder({ 
+            persis, 
+            data: { 
+                ...jobData, 
+                status: jobData.type === JobType.ONCE ? JobStatus.FINISHED : JobStatus.ACTIVE,
+                lastRunAt: new Date().getTime() 
+            } 
+        });
 
         // Check if user is active or removed
         const user = await read.getUserReader().getById(jobData.user);
