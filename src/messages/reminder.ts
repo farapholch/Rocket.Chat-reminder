@@ -28,7 +28,9 @@ export async function ReminderMessage({ app, owner, jobData, read, modify, room,
 
     if (jobData.targetType === JobTargetType.CHANNEL) {
         caption = lang.reminder.message.caption_channel(owner.username);
-    }    let refMsgAttachment: IMessageAttachment | null = null;
+    }
+
+    let refMsgAttachment: IMessageAttachment | null = null;
     if (refMsg) {
         try {
             const msgLink = await generateMsgLink(app, refMsg);
