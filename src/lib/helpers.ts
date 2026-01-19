@@ -388,16 +388,16 @@ export function truncate(str: string, length: number): string {
  * Generate message link that opens internally in Rocket.Chat
  */
 export async function generateMsgLink(app: appClass, message: IMessage): Promise<string> {
-    const baseUrl = app.siteUrl; // https://snacka-utv.app.trafikverket.se
+    const baseUrl = app.siteUrl || ''; // https://snacka-utv.app.trafikverket.se
     
-    // Validate baseUrl
+    // Validate baseUrl - return fallback if missing
     if (!baseUrl || baseUrl.trim() === '') {
-        throw new Error('Site URL is not configured');
+        return '#';
     }
     
-    // Validate message ID
+    // Validate message ID - return fallback if missing
     if (!message.id) {
-        throw new Error('Message ID is missing');
+        return '#';
     }
     
     // Remove trailing slash from baseUrl if present
@@ -406,7 +406,7 @@ export async function generateMsgLink(app: appClass, message: IMessage): Promise
     if (message.room.type === RoomType.CHANNEL) {
         const slugifiedName = message.room.slugifiedName || message.room.id;
         if (!slugifiedName) {
-            throw new Error('Channel name or ID is missing');
+            return '#';
         }
         // Ensure proper URL encoding
         return `${cleanBaseUrl}/channel/${encodeURIComponent(slugifiedName)}?msg=${encodeURIComponent(message.id)}`;
@@ -415,14 +415,14 @@ export async function generateMsgLink(app: appClass, message: IMessage): Promise
     if (message.room.type === RoomType.PRIVATE_GROUP) {
         const slugifiedName = message.room.slugifiedName || message.room.id;
         if (!slugifiedName) {
-            throw new Error('Group name or ID is missing');
+            return '#';
         }
         return `${cleanBaseUrl}/group/${encodeURIComponent(slugifiedName)}?msg=${encodeURIComponent(message.id)}`;
     }
 
     // For direct messages, use room ID
     if (!message.room.id) {
-        throw new Error('Room ID is missing for direct message');
+        return '#';
     }
     return `${cleanBaseUrl}/direct/${encodeURIComponent(message.room.id)}?msg=${encodeURIComponent(message.id)}`;
 }
