@@ -388,15 +388,43 @@ export function truncate(str: string, length: number): string {
  * Generate message link that opens internally in Rocket.Chat
  */
 export async function generateMsgLink(app: appClass, message: IMessage): Promise<string> {
+    const baseUrl = app.siteUrl; // https://snacka-utv.app.trafikverket.se
+    
+    // Validate baseUrl
+    if (!baseUrl || baseUrl.trim() === '') {
+        throw new Error('Site URL is not configured');
+    }
+    
+    // Validate message ID
+    if (!message.id) {
+        throw new Error('Message ID is missing');
+    }
+    
+    // Remove trailing slash from baseUrl if present
+    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+    
     if (message.room.type === RoomType.CHANNEL) {
-        return `/channel/${message.room.slugifiedName}?msg=${message.id}`;
+        const slugifiedName = message.room.slugifiedName || message.room.id;
+        if (!slugifiedName) {
+            throw new Error('Channel name or ID is missing');
+        }
+        // Ensure proper URL encoding
+        return `${cleanBaseUrl}/channel/${encodeURIComponent(slugifiedName)}?msg=${encodeURIComponent(message.id)}`;
     }
 
     if (message.room.type === RoomType.PRIVATE_GROUP) {
-        return `/group/${message.room.slugifiedName}?msg=${message.id}`;
+        const slugifiedName = message.room.slugifiedName || message.room.id;
+        if (!slugifiedName) {
+            throw new Error('Group name or ID is missing');
+        }
+        return `${cleanBaseUrl}/group/${encodeURIComponent(slugifiedName)}?msg=${encodeURIComponent(message.id)}`;
     }
 
-    return `/direct/${message.room.id}?msg=${message.id}`;
+    // For direct messages, use room ID
+    if (!message.room.id) {
+        throw new Error('Room ID is missing for direct message');
+    }
+    return `${cleanBaseUrl}/direct/${encodeURIComponent(message.room.id)}?msg=${encodeURIComponent(message.id)}`;
 }
 
 /**
