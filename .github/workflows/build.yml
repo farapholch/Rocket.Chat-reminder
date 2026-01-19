@@ -2,10 +2,33 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main, linksImprovements, combined-improvements ]
+    branches: [ main, linksImprovements, combined-improvements, swedish-language-pack, loops ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create GitHub Release'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      release_type:
+        description: 'Release Type'
+        required: false
+        default: 'draft'
+        type: choice
+        options:
+          - 'release'
+          - 'pre-release'
+          - 'draft'
+      release_notes:
+        description: 'Release Notes (optional)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   lint:
@@ -72,3 +95,37 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Package created:** \`$(ls dist/*.zip | xargs basename)\`" >> $GITHUB_STEP_SUMMARY
         echo "**Size:** \`$(ls -lh dist/*.zip | awk '{print $5}')\`" >> $GITHUB_STEP_SUMMARY
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: rocket-chat-reminder-app
+        path: ./dist
+    
+    - name: Get version from app.json
+      id: get_version
+      run: |
+        VERSION=$(cat app.json | grep -oP '(?<="version": ")[^"]*')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.get_version.outputs.version }}
+        name: Release v${{ steps.get_version.outputs.version }}
+        body: ${{ github.event.inputs.release_notes || format('Release version {0}', steps.get_version.outputs.version) }}
+        draft: ${{ github.event.inputs.release_type == 'draft' }}
+        prerelease: ${{ github.event.inputs.release_type == 'pre-release' }}
+        files: ./dist/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
