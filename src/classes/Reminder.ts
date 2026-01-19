@@ -187,9 +187,7 @@ export class Reminder {
         this.app.jobsCache.setOnUserByJobId(jobData.user, id, { jobId, status: JobStatus.ACTIVE });
 
         return true;
-    }
-
-    public async processor({ job, read, modify, persis }: {
+    }    public async processor({ job, read, modify, persis }: {
         job: IJobContext,
         read: IRead,
         modify: IModify,
@@ -203,6 +201,17 @@ export class Reminder {
         if (!jobData || jobData.status !== JobStatus.ACTIVE) {
             return;
         }
+
+        // CRITICAL: Immediately mark as processing to prevent duplicate execution
+        // This prevents race conditions where the same job runs multiple times
+        await setReminder({ 
+            persis, 
+            data: { 
+                ...jobData, 
+                status: jobData.type === JobType.ONCE ? JobStatus.FINISHED : JobStatus.ACTIVE,
+                lastRunAt: new Date().getTime() 
+            } 
+        });
 
         // Check if user is active or removed
         const user = await read.getUserReader().getById(jobData.user);
